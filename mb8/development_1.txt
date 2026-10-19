@@ -1,0 +1,162 @@
+Development 1 — build the portal in the IDE
+This file is the plan from our discussion.
+Open it in the IDE and build beside it.
+The three invited projects stay in their own folders.
+
+What the portal is
+------------------
+The portal is a new Django project that you own.
+It has two pages:
+
+  1. A sign-in form.
+  2. A page of buttons for the projects this user is allowed to open.
+
+The three projects are:
+
+  71_claim_claim_web_app
+  Operation
+  Migration
+
+Do not copy their code into the portal.
+Do not join the four folders into one Django project.
+
+Folders
+-------
+On your computer, for building:
+
+  portal/                         you create this in the IDE
+
+On the Linux server, later:
+
+  sites/deploy/                   you create: docker-compose.yml and the public nginx.conf
+  sites/portal/                   the project you build in the IDE
+  sites/71_claim_claim_web_app/   clone of their repo, keep their Dockerfile and nginx.conf
+  sites/Operation/                clone of their repo, keep their Dockerfile and nginx.conf
+  sites/Migration/                clone of their repo, keep their Dockerfile and nginx.conf
+
+Docker is installed on the Linux machine.
+The public nginx.conf is only in sites/deploy/.
+It is the only file that listens on port 443.
+Each project's own nginx.conf stays inside that project.
+Those inner nginx containers listen on port 80 on the private Docker network.
+Their compose files must not publish port 80 on the host, because only one public HTTPS port is available.
+
+Picture
+-------
+  Browser -- HTTPS :443 --> deploy/nginx.conf
+                               |-- portal.example.com     --> portal
+                               |-- claim.example.com      --> 71_claim_claim_web_app nginx
+                               |-- operation.example.com  --> Operation nginx
+                               |-- migration.example.com  --> Migration nginx
+
+A button is a link. Nginx reads the hostname and chooses the container.
+
+Pages to build
+--------------
+Sign-in page
+  Fields: Username, Password, Sign in button.
+  A wrong password stays on this page and shows an error.
+  A correct password goes to the project page.
+
+Project page
+  Title: Your projects
+  Show the signed-in username.
+  Show a Sign out button.
+  Show one button per group the user belongs to:
+
+    group name     button label     address
+    claim          Claim            https://claim.example.com/
+    operation      Operation        https://operation.example.com/
+    migration      Migration        https://migration.example.com/
+
+  If the user has no groups, show:
+    No projects are assigned to this account.
+
+Replace example.com with the real domain before the server goes live.
+Until then, the three buttons are only links. They do not start the other projects.
+
+Portal users
+------------
+The portal has its own user table.
+Create groups with these exact names:
+
+  claim
+  operation
+  migration
+
+In Django admin, add each person to the groups they should see.
+Signing in to the portal does not sign them in to Claim, Operation, or Migration.
+Those three projects still show their own login.
+One shared login needs the other developers to share the user table, the SECRET_KEY,
+the session store, and SESSION_COOKIE_DOMAIN = ".example.com".
+
+Files inside portal/
+--------------------
+  manage.py
+  requirements.txt          Django, gunicorn, whitenoise
+  Dockerfile
+  portal_site/settings.py
+  portal_site/urls.py
+  portal_site/wsgi.py
+  pages/views.py
+  pages/management/commands/seed_groups.py
+  templates/base.html
+  templates/registration/login.html
+  templates/home.html
+  static/portal/portal.css
+
+settings.py names
+-----------------
+  LOGIN_URL = "login"
+  LOGIN_REDIRECT_URL = "home"
+  LOGOUT_REDIRECT_URL = "login"
+
+  PORTAL_LINKS from the environment, with the example.com defaults above:
+    PORTAL_CLAIM_URL
+    PORTAL_OPERATION_URL
+    PORTAL_MIGRATION_URL
+
+  Behind the public nginx, when debug is off:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
+
+Home view
+---------
+  Read the signed-in user's group names.
+  Keep a link only when its group name is in that set.
+  Render templates/home.html with that list.
+
+Sign out
+--------
+  Use a POST form to the logout URL.
+  Django 5 does not log out from a plain link.
+
+Run it from the IDE terminal
+----------------------------
+  Open a terminal in the portal folder. Then:
+
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+    python manage.py migrate
+    python manage.py seed_groups
+    python manage.py createsuperuser
+    python manage.py runserver
+
+  Leave that terminal open.
+  In a browser on the same computer open:
+
+    http://127.0.0.1:8000/login/
+
+  Create the user in admin and assign groups there:
+
+    http://127.0.0.1:8000/admin/
+
+A working copy of this portal is already in this repository at:
+
+  portal/
+
+Use that folder as the reference while you build, or open it directly in the IDE.
+The local test commands are also in:
+
+  mb8/deployment_1.txt
