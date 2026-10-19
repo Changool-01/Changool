@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in · Portal{% endblock %}
+
+{% block content %}
+  <section class="card">
+    <p class="eyebrow">Portal</p>
+    <h1>Sign in</h1>
+    <p class="lede">Use your portal account. The next page lists the projects assigned to you.</p>
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <p class="error" role="alert">{{ form.non_field_errors.0 }}</p>
+      {% endif %}
+
+      <label for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }}
+      {{ form.username.errors }}
+
+      <label for="{{ form.password.id_for_label }}">Password</label>
+      {{ form.password }}
+      {{ form.password.errors }}
+
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit">Sign in</button>
+    </form>
+  </section>
+{% endblock %}

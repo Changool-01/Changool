@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Your projects · Portal{% endblock %}
+
+{% block content %}
+  <section class="card card-wide">
+    <header class="home-head">
+      <div>
+        <p class="eyebrow">Portal</p>
+        <h1>Your projects</h1>
+        <p class="lede">Signed in as {{ user.get_username }}.</p>
+      </div>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="ghost" type="submit">Sign out</button>
+      </form>
+    </header>
+
+    {% if links %}
+      <ul class="projects">
+        {% for link in links %}
+          <li>
+            <a class="project" href="{{ link.url }}">
+              <span class="project-name">{{ link.label }}</span>
+              <span class="project-url">{{ link.url }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty">No projects are assigned to this account.</p>
+    {% endif %}
+  </section>
+{% endblock %}
