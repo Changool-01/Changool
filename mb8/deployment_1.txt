@@ -1,0 +1,55 @@
+Deployment 1 — test the portal on your own Linux computer
+Run every command in the terminal on that computer.
+
+1. Open a terminal.
+   This is not inside 71_claim_claim_web_app, Operation, or Migration.
+
+2. Go to the folder where you want the files, then clone the portal.
+
+   git clone -b cursor/portal-login-03ec https://github.com/Changool-01/Changool.git
+   cd Changool/portal
+
+3. Install and start the portal.
+
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   python manage.py migrate
+   python manage.py seed_groups
+   python manage.py createsuperuser
+   python manage.py runserver
+
+4. Leave that terminal open.
+   Open a browser on the same computer and go to:
+
+   http://127.0.0.1:8000/login/
+
+5. Sign in with the user you created.
+   Open http://127.0.0.1:8000/admin/
+   Add that user to one or more of these groups:
+
+   claim
+   operation
+   migration
+
+   Sign in again. Only the matching buttons are shown.
+
+The portal folder in this repository is:
+
+   portal/
+
+This notes file is:
+
+   mb8/deployment_1.txt
+
+On the Linux server, the folders sit side by side:
+
+   sites/deploy/                  public nginx.conf and docker-compose.yml
+   sites/portal/                  this portal
+   sites/71_claim_claim_web_app/  their folder, their Dockerfile, their nginx.conf
+   sites/Operation/               their folder, their Dockerfile, their nginx.conf
+   sites/Migration/               their folder, their Dockerfile, their nginx.conf
+
+Docker is installed on the Linux machine.
+Only deploy/nginx.conf uses public port 443.
+The nginx.conf already inside each project stays in that project and listens on the private Docker network.
